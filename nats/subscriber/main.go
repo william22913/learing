@@ -34,4 +34,5 @@ func main() {
 
 func printMsg(m *nats.Msg, i int) {
 	fmt.Printf("[#%d] Received on [%s]: '%s'", i, m.Subject, string(m.Data))
+	fmt.Println()
 }
