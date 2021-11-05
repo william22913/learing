@@ -26,6 +26,7 @@ func main() {
 	}
 
 	consumer.ReadSubs(sub)
+
 	for {
 
 	}

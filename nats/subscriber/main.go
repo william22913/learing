@@ -18,11 +18,25 @@ func main() {
 	defer conn.Close()
 
 	i := 1
-	conn.Subscribe(subject, func(msg *nats.Msg) {
+	_, err = conn.Subscribe(subject, func(msg *nats.Msg) {
 		i += 1
 		printMsg(msg, i)
 	})
-	conn.Flush()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Create Conference -> rooms di many janus gateway proxy
+	// Subscribe "conference id"
+	// message -> {  }
+
+	//for ping-pong
+	err = conn.Flush()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	if err := conn.LastError(); err != nil {
 		fmt.Println(err)

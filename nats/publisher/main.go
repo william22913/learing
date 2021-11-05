@@ -16,7 +16,7 @@ func main() {
 
 	defer conn.Close()
 
-	err = conn.Publish(subject, []byte("test message2"))
+	err = conn.Publish(subject, []byte("test message3"))
 	if err != nil {
 		fmt.Println(err)
 		return

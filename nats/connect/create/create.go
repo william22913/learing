@@ -14,7 +14,6 @@ func CreateConnection() (conn *nats.Conn, err error) {
 	if err != nil {
 		return
 	}
-	conn.JetStream()
 
 	return conn, nil
 }
