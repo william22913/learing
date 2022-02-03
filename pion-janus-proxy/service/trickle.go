@@ -16,18 +16,12 @@ func DoTrickle(conn *websocket.Conn, session message.SessionData, pluginHandle m
 
 	go func() {
 
-		for {
-			err = conn.ReadJSON(&response)
-			if err != nil {
-				log.Println(err)
-			}
-
-			log.Println("response ->> ", response)
-
-			if response.Janus != "ack" {
-				break
-			}
+		err = conn.ReadJSON(&response)
+		if err != nil {
+			log.Println(err)
 		}
+
+		log.Println("response ->> ", response)
 
 		channel <- response
 	}()

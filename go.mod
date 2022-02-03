@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/nats-io/nats.go v1.13.0

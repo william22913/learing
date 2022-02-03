@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,66 +23,60 @@ func main() {
 	)
 
 	if err != nil {
-		log.Println(err)
+		log.Println("1", err)
 		return
 	}
 
-	err = service.DoHandshake(conn, Default)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	// err = service.DoHandshake(conn, Default)
+	// if err != nil {
+	// 	log.Println("2", err)
+	// 	return
+	// }
 
 	session, err := service.DoCreateSession(conn, Default)
 	if err != nil {
-		log.Println(err)
+		log.Println("3", err)
 		return
 	}
 
 	handler, err := service.DoAttachHandler(conn, session)
 	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	sdp, err := service.DoSetup(conn, session, handler)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	err = service.DoPluginAck(conn, session, handler, sdp)
-	if err != nil {
-		log.Println(err)
+		log.Println("4", err)
 		return
 	}
 
 	room, err := service.DoCreateRoom(conn, session, handler)
 	if err != nil {
-		log.Println(err)
+		log.Println("5", err)
 		return
 	}
 
 	fmt.Println(room)
 
+	sdp, err := service.DoSetup(conn, session, handler)
+	if err != nil {
+		log.Println("6", err)
+		return
+	}
+
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:" + Default.Janus.STUN},
+				URLs: []string{"stun:stun.l.google.com:19302"},
 			},
 		},
-		SDPSemantics: webrtc.SDPSemanticsUnifiedPlanWithFallback,
+		// SDPSemantics: webrtc.SDPSemanticsUnifiedPlanWithFallback,
 	}
 
 	peerConnection, err := webrtc.NewPeerConnection(config)
 	if err != nil {
-		log.Println(err)
+		log.Println("7", err)
 		return
 	}
 
 	defer func() {
 		if err := peerConnection.Close(); err != nil {
-			log.Println(err)
+			log.Println("8", err)
 		}
 	}()
 
@@ -105,7 +98,7 @@ func main() {
 
 	channel, err := peerConnection.CreateDataChannel("JanusDataChannel", option)
 	if err != nil {
-		log.Println(err)
+		log.Println("9", err)
 	}
 
 	channel.OnOpen(func() {
@@ -124,7 +117,7 @@ func main() {
 	peerConnection.OnICECandidate(func(candidate *webrtc.ICECandidate) {
 		err = service.DoTrickle(conn, session, handler, candidate)
 		if err != nil {
-			log.Println(err)
+			log.Println("10", err)
 		}
 	})
 
@@ -165,14 +158,13 @@ func main() {
 
 	peerConnection.SetRemoteDescription(sdpDesc)
 	if err != nil {
-		log.Println(err)
+		log.Println("11", err)
 		return
-
 	}
 
 	answer, err := peerConnection.CreateAnswer(nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("12", err)
 		return
 	}
 
@@ -184,7 +176,7 @@ func main() {
 	// Sets the LocalDescription, and starts our UDP listeners
 	err = peerConnection.SetLocalDescription(answer)
 	if err != nil {
-		log.Println(err)
+		log.Println("13", err)
 		return
 	}
 
@@ -192,6 +184,47 @@ func main() {
 	// we do this because we only can exchange one signaling message
 	// in a production application you should exchange ICE Candidates via OnICECandidate
 	<-gatherComplete
+
+	time.Sleep(5 * time.Second)
+
+	err = service.DoPluginAck(conn, session, handler, sdp)
+	if err != nil {
+		log.Println("14", err)
+		return
+	}
+
+	join := fmt.Sprintf(`
+		{
+			"textroom": "join",
+			"room": %s,
+			"username": "wills",
+			"transaction": "hehe12487h"
+		}
+	`, room.Room)
+
+	err = channel.SendText(join)
+	if err != nil {
+		log.Println("15", err)
+		return
+	}
+
+	message := fmt.Sprintf(`
+		{
+			"textroom": "message",
+			"room": %s,
+			"text": "hello world",
+			"transaction": "hehe12487h"
+		}
+	`, room.Room)
+
+	err = channel.SendText(message)
+	if err != nil {
+		log.Println("16", err)
+		return
+	}
+
+	for {
+	}
 
 }
 
@@ -215,59 +248,12 @@ type KeepAliveMessage struct {
 	Transaction string `json:"transaction"`
 }
 
-// Keep alive should be after creating session
-func KeepAlive(
-	conn *websocket.Conn,
-	session string,
-	done chan struct{},
-	duration time.Duration,
-	timeout time.Duration,
-) {
-	ticker := time.NewTicker(duration)
-	defer ticker.Stop()
-
-	for {
-		select {
-
-		case <-ticker.C:
-			next, err := uuid.NewRandomFromReader(rand.Reader)
-
-			if err != nil {
-				continue
-			}
-
-			km, err := json.Marshal(KeepAliveMessage{
-				Request:     "keepalive",
-				Session:     session,
-				Transaction: next.String(),
-			})
-
-			if err != nil {
-				continue
-			}
-
-			err = conn.WriteControl(
-				websocket.PingMessage,
-				km,
-				time.Now().Add(timeout),
-			)
-
-			if err != nil {
-				continue
-			}
-
-		case <-done:
-			return
-		}
-	}
-}
-
 func Connect(url string) (*websocket.Conn, error) {
 	upgradeRequest := http.Header{}
 	// upgradeRequest.Add("Connection", "Upgrade")
 	// upgradeRequest.Add("Upgrade", "websocket")
 	// Note: add janus-protocol to WebSocket protocol
-	// upgradeRequest.Add("Sec-Websocket-Protocol", "janus-protocol")
+	upgradeRequest.Add("Sec-Websocket-Protocol", "janus-protocol")
 
 	dealer := websocket.DefaultDialer
 	// upgradeRequest.
