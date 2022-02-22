@@ -13,6 +13,7 @@ type PDFTableHeader struct {
 	IsBold      bool
 	Name        string
 	ColumnWidth float64
+	BodyAlign   string
 }
 
 func AddTable(pdf *gofpdf.Fpdf, header []PDFTableHeader, strList [][]string, yStart float64, border bool, isShowHeader bool, cellGap float64, lineHt float64, marginH float64) float64 {
@@ -78,7 +79,12 @@ func AddTable(pdf *gofpdf.Fpdf, header []PDFTableHeader, strList [][]string, ySt
 			align := ""
 			if i == 0 {
 				align = "C"
+			} else {
+				if header[j].BodyAlign != "" {
+					align = header[j].BodyAlign
+				}
 			}
+
 			pdf.ClipRect(x, y, header[j].ColumnWidth, usedMax+cellGap+cellGap, border)
 			cell = cellList[i][j]
 			cellY := y + cellGap + (usedMax-cell.ht)/2

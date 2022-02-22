@@ -62,6 +62,7 @@ func getTotalAmount() (header []util.PDFTableHeader, data [][]string) {
 		}, util.PDFTableHeader{
 			ColumnWidth: 25,
 			IsBold:      true,
+			BodyAlign:   "LR",
 		},
 	)
 	return
@@ -79,6 +80,7 @@ func getDiscount() (header []util.PDFTableHeader, data [][]string) {
 			ColumnWidth: 25,
 		}, util.PDFTableHeader{
 			ColumnWidth: 25,
+			BodyAlign:   "LR",
 		},
 	)
 	return
@@ -97,6 +99,7 @@ func getTransactionTable() (header []util.PDFTableHeader, data [][]string) {
 		util.PDFTableHeader{
 			Name:        "No.",
 			ColumnWidth: 8,
+			BodyAlign:   "C",
 		}, util.PDFTableHeader{
 			Name:        "Barcode",
 			ColumnWidth: 25,
@@ -106,24 +109,31 @@ func getTransactionTable() (header []util.PDFTableHeader, data [][]string) {
 		}, util.PDFTableHeader{
 			Name:        "Qty",
 			ColumnWidth: 10,
+			BodyAlign:   "C",
 		}, util.PDFTableHeader{
 			Name:        "Qty Base",
 			ColumnWidth: 10,
+			BodyAlign:   "C",
 		}, util.PDFTableHeader{
 			Name:        "Unit",
 			ColumnWidth: 10,
+			BodyAlign:   "C",
 		}, util.PDFTableHeader{
 			Name:        "Price",
 			ColumnWidth: 18,
+			BodyAlign:   "LR",
 		}, util.PDFTableHeader{
 			Name:        "Discount",
 			ColumnWidth: 15,
+			BodyAlign:   "C",
 		}, util.PDFTableHeader{
 			Name:        "Sub Total",
 			ColumnWidth: 25,
+			BodyAlign:   "LR",
 		}, util.PDFTableHeader{
 			Name:        "Sub Total + PPN",
 			ColumnWidth: 25,
+			BodyAlign:   "LR",
 		},
 	)
 	return
