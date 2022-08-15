@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	subject := "foo"
+	subject := "agora"
 	conn, err := create.CreateConnection()
 	if err != nil {
 		fmt.Println(err)
